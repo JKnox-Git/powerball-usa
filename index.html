@@ -272,6 +272,27 @@
           </div>
         </div>
 
+        <!-- Instant 2-Line Recommended Plays (Visible for Smart Analytics & Quick Pick upon access) -->
+        <div id="instant-recommend-container" class="instant-recommend-wrap">
+          <div class="instant-recommend-header">
+            <div class="instant-recommend-title-wrap">
+              <span class="instant-badge">⚡ Instant Recommendation</span>
+              <span class="instant-subtitle" id="instant-mode-subtitle">Smart Analytics (2 Plays)</span>
+            </div>
+            <div class="instant-actions">
+              <button type="button" id="btn-refresh-instant" class="btn-action" style="padding: 0.3rem 0.65rem; font-size: 0.75rem;">
+                <span>🔄</span>
+                <span>Refresh</span>
+              </button>
+              <button type="button" id="btn-copy-instant" class="btn-action" style="padding: 0.3rem 0.65rem; font-size: 0.75rem;">
+                <span>📋</span>
+                <span id="copy-instant-text">Copy 2 Lines</span>
+              </button>
+            </div>
+          </div>
+          <div id="instant-games-list" class="instant-games-list"></div>
+        </div>
+
         <!-- Center-Aligned Generate Button Container -->
         <div class="generate-action-wrap">
           <button type="button" id="btn-generate-main" class="btn-generate-main">

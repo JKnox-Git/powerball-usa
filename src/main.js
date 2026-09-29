@@ -290,6 +290,8 @@ const state = {
   selectedConstellationId: 'aries',
   currentTicket: null,
   savedTickets: [],
+  instantPlays: [],
+  instantPlaysMode: null,
   
   // Drum State
   drumRunning: false,
@@ -574,6 +576,118 @@ function renderCurrentTicket() {
     card.appendChild(left);
     card.appendChild(stats);
     container.appendChild(card);
+  });
+}
+
+// 7.1 Instant 2-Line Recommendations for Smart Analytics and Quick Pick
+function renderInstantRecommendations(regenerate = false) {
+  const container = document.getElementById('instant-recommend-container');
+  const listContainer = document.getElementById('instant-games-list');
+  const subTitle = document.getElementById('instant-mode-subtitle');
+  if (!container || !listContainer) return;
+
+  const isStats = state.selectedMode === 'stats';
+  const isRandom = state.selectedMode === 'random';
+
+  if (!isStats && !isRandom) {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'block';
+
+  if (isStats) {
+    if (subTitle) subTitle.textContent = 'Smart Analytics Model (2 Plays)';
+  } else {
+    if (subTitle) subTitle.textContent = 'Pure Quick Pick Model (2 Plays)';
+  }
+
+  const preferHot = document.getElementById('chk-prefer-hot')?.checked ?? true;
+  const avoidTriples = document.getElementById('chk-avoid-triples')?.checked ?? true;
+
+  if (regenerate || !state.instantPlays || state.instantPlays.length === 0 || state.instantPlaysMode !== state.selectedMode) {
+    state.instantPlays = [];
+    state.instantPlaysMode = state.selectedMode;
+
+    const labels = ['A', 'B'];
+    for (let i = 0; i < 2; i++) {
+      let result = null;
+      let modeLabel = isStats ? 'Smart Analytics' : 'Pure Quick Pick';
+
+      if (isStats) {
+        result = generateSinglePowerballGame(state.fixedWhite, state.fixedPB, state.excludedWhite, state.excludedPB, preferHot, avoidTriples, state.oddRatio);
+      } else {
+        const pool = Array.from({ length: 69 }, (_, idx) => idx + 1).sort(() => 0.5 - Math.random());
+        const w = pool.slice(0, 5).sort((a, b) => a - b);
+        const pb = Math.floor(Math.random() * 26) + 1;
+        result = { white: w, pb, powerPlay: getRandomPowerPlay() };
+      }
+
+      const sum = result.white.reduce((a, b) => a + b, 0);
+      const odds = result.white.filter(n => n % 2 !== 0).length;
+      const evens = 5 - odds;
+      const highs = result.white.filter(n => n >= 35).length;
+      const lows = 5 - highs;
+
+      state.instantPlays.push({
+        id: `instant-${Date.now()}-${i}`,
+        label: labels[i],
+        white: result.white,
+        pb: result.pb,
+        powerPlay: result.powerPlay,
+        modeLabel,
+        sum,
+        odds,
+        evens,
+        highs,
+        lows
+      });
+    }
+  }
+
+  listContainer.innerHTML = '';
+  state.instantPlays.forEach(g => {
+    const card = document.createElement('div');
+    card.className = 'instant-game-card';
+
+    const left = document.createElement('div');
+    left.className = 'game-left';
+
+    const badge = document.createElement('div');
+    badge.className = 'instant-line-badge';
+    badge.textContent = g.label;
+    left.appendChild(badge);
+
+    const ballsRow = document.createElement('div');
+    ballsRow.className = 'balls-row';
+    g.white.forEach(n => {
+      ballsRow.appendChild(createWhiteBall(n, 'md'));
+    });
+
+    const plus = document.createElement('span');
+    plus.className = 'ball-plus-sign';
+    plus.textContent = '+';
+    ballsRow.appendChild(plus);
+
+    ballsRow.appendChild(createPowerball(g.pb, 'md'));
+    ballsRow.appendChild(createPowerPlayBadge(g.powerPlay));
+
+    left.appendChild(ballsRow);
+
+    const stats = document.createElement('div');
+    stats.className = 'game-stats';
+    stats.innerHTML = `
+      <span>Sum: <strong style="color: #38bdf8;">${g.sum}</strong></span>
+      <span>|</span>
+      <span>Odd/Even: <strong>${g.odds}:${g.evens}</strong></span>
+      <span>|</span>
+      <span>High/Low: <strong>${g.highs}:${g.lows}</strong></span>
+      <span style="color: var(--text-muted);">(${g.modeLabel})</span>
+    `;
+
+    card.appendChild(left);
+    card.appendChild(stats);
+    listContainer.appendChild(card);
   });
 }
 
@@ -1446,9 +1560,26 @@ function initApp() {
   // Hot / Triples Checkboxes
   document.getElementById('chk-prefer-hot')?.addEventListener('change', () => {
     hideResultsArea();
+    if (state.selectedMode === 'stats') renderInstantRecommendations(true);
   });
   document.getElementById('chk-avoid-triples')?.addEventListener('change', () => {
     hideResultsArea();
+    if (state.selectedMode === 'stats') renderInstantRecommendations(true);
+  });
+
+  // Instant Recommendations Action Buttons
+  document.getElementById('btn-refresh-instant')?.addEventListener('click', () => {
+    sound.playClick();
+    renderInstantRecommendations(true);
+    showToast('🔄 2 Recommended plays refreshed!');
+  });
+
+  document.getElementById('btn-copy-instant')?.addEventListener('click', () => {
+    sound.playClick();
+    if (!state.instantPlays || state.instantPlays.length === 0) return;
+    const lines = state.instantPlays.map(g => `Play ${g.label}: [${g.white.join(', ')}] + PB: ${g.pb} (${g.powerPlay}X)`);
+    navigator.clipboard.writeText(lines.join('\n'));
+    showToast('📋 2 Recommended plays copied to clipboard!');
   });
 
   // Sound Toggle Button
@@ -1478,6 +1609,7 @@ function initApp() {
       if (activeSub) activeSub.style.display = 'block';
 
       hideResultsArea();
+      renderInstantRecommendations(true);
     });
   });
 
@@ -1490,6 +1622,7 @@ function initApp() {
       btn.classList.add('btn-action-primary');
       state.oddRatio = btn.dataset.ratio;
       hideResultsArea();
+      if (state.selectedMode === 'stats') renderInstantRecommendations(true);
     });
   });
 
@@ -1691,6 +1824,7 @@ function initApp() {
   renderConstellationItems();
   initDrumSimulation();
   initDrawCountdown();
+  renderInstantRecommendations(true);
 }
 
 // Start on DOMContentLoaded
