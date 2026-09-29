@@ -1,0 +1,8 @@
+{
+  "name": "US Powerball Number Generator",
+  "description": "Professional US Powerball 6/69 + 1/26 number generator with statistical big data analysis, custom filters, dream decoder, zodiac fortune, live 3D-feel dual-chamber draw simulator, and saved vault.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
