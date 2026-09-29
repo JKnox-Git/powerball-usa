@@ -519,6 +519,11 @@ function generateFullTicket() {
     games
   };
 
+  const resultsArea = document.getElementById('results-area');
+  if (resultsArea) {
+    resultsArea.style.display = 'block';
+  }
+
   renderCurrentTicket();
 }
 
@@ -1655,9 +1660,6 @@ function initApp() {
   renderConstellationItems();
   initDrumSimulation();
   initDrawCountdown();
-
-  // Generate initial ticket
-  generateFullTicket();
 }
 
 // Start on DOMContentLoaded
