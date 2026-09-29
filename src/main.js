@@ -597,6 +597,7 @@ function renderCustomBallPickers() {
 
       btn.addEventListener('click', () => {
         sound.playClick();
+        hideResultsArea();
         if (state.customPickMode === 'fixed') {
           if (isFixed) {
             state.fixedWhite = state.fixedWhite.filter(n => n !== i);
@@ -648,6 +649,7 @@ function renderCustomBallPickers() {
 
       btn.addEventListener('click', () => {
         sound.playClick();
+        hideResultsArea();
         if (state.customPickMode === 'fixed') {
           if (isFixed) {
             state.fixedPB = null;
@@ -734,6 +736,7 @@ function renderDreamItems(filter = '') {
 
     card.addEventListener('click', () => {
       sound.playClick();
+      hideResultsArea();
       state.selectedDreamId = d.id;
       renderDreamItems(filter);
       updateDreamInfoBox();
@@ -745,6 +748,15 @@ function renderDreamItems(filter = '') {
   updateDreamInfoBox();
 }
 
+// Helper to hide results area across all categories and menus until execution
+function hideResultsArea() {
+  const el = document.getElementById('results-area');
+  if (el) el.style.display = 'none';
+  const container = document.getElementById('games-list-container');
+  if (container) container.innerHTML = '';
+  state.currentTicket = null;
+}
+
 function updateDreamInfoBox() {
   const box = document.getElementById('dream-info-box');
   if (!box) return;
@@ -752,16 +764,11 @@ function updateDreamInfoBox() {
   box.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; flex-wrap: wrap; gap: 4px;">
       <strong style="color: #fca5a5; font-size: 0.85rem;">${d.emoji} ${d.keyword} Dream Interpretation</strong>
-      <span style="color: var(--text-muted); font-size: 0.7rem;">Lucky Powerball: <strong>${d.pb}</strong></span>
+      <span style="color: var(--text-sub); font-size: 0.7rem;">Symbolic Archetype: <strong>${d.category}</strong></span>
     </div>
     <p style="margin-bottom: 0.4rem;">${d.meaning}</p>
-    <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-      <span style="color: var(--text-sub);">Symbolic Numbers:</span>
-      <div style="display: flex; gap: 4px; align-items: center;">
-        ${d.white.map(n => `<div class="lotto-ball ball-xs ball-white">${n}</div>`).join('')}
-        <span class="ball-plus-sign">+</span>
-        <div class="lotto-ball ball-xs ball-powerball">${d.pb}</div>
-      </div>
+    <div style="font-size: 0.75rem; color: #fde047; display: flex; align-items: center; gap: 0.35rem;">
+      <span>✨ Click <strong>"Generate Powerball Numbers"</strong> below to generate sets based on this dream.</span>
     </div>
   `;
 }
@@ -782,6 +789,7 @@ function renderZodiacItems() {
 
     card.addEventListener('click', () => {
       sound.playClick();
+      hideResultsArea();
       state.selectedZodiacId = z.id;
       renderZodiacItems();
       updateZodiacInfoBox();
@@ -830,6 +838,7 @@ function renderConstellationItems() {
 
     card.addEventListener('click', () => {
       sound.playClick();
+      hideResultsArea();
       state.selectedConstellationId = c.id;
       renderConstellationItems();
       updateConstellationInfoBox();
@@ -847,17 +856,12 @@ function updateConstellationInfoBox() {
   const c = CONSTELLATION_ITEMS.find(item => item.id === state.selectedConstellationId) || CONSTELLATION_ITEMS[0];
   box.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; flex-wrap: wrap; gap: 4px;">
-      <strong style="color: #c084fc; font-size: 0.85rem;">${c.emoji} ${c.name} (${c.dates}) Cosmic Guardian Numbers</strong>
-      <span style="color: var(--text-muted); font-size: 0.7rem;">Cosmic Powerball: <strong>${c.basePB}</strong></span>
+      <strong style="color: #c084fc; font-size: 0.85rem;">${c.emoji} ${c.name} (${c.dates}) Astrological Forecast</strong>
+      <span style="color: var(--text-sub); font-size: 0.7rem;">Element: <strong>Astrology</strong></span>
     </div>
     <p style="margin-bottom: 0.4rem;">${c.blessing}</p>
-    <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-      <span style="color: var(--text-sub);">Guardian Numbers:</span>
-      <div style="display: flex; gap: 4px; align-items: center;">
-        ${c.baseWhite.map(n => `<div class="lotto-ball ball-xs ball-white">${n}</div>`).join('')}
-        <span class="ball-plus-sign">+</span>
-        <div class="lotto-ball ball-xs ball-powerball">${c.basePB}</div>
-      </div>
+    <div style="font-size: 0.75rem; color: #c084fc; display: flex; align-items: center; gap: 0.35rem;">
+      <span>⭐ Click <strong>"Generate Powerball Numbers"</strong> below to create plays with this sign's cosmic alignment.</span>
     </div>
   `;
 }
@@ -1423,6 +1427,7 @@ function initApp() {
   navTabs.forEach(btn => {
     btn.addEventListener('click', () => {
       sound.playClick();
+      hideResultsArea();
       const tabKey = btn.dataset.tab;
       state.activeTab = tabKey;
 
@@ -1436,6 +1441,14 @@ function initApp() {
       if (tabKey === 'stats') renderStatistics();
       if (tabKey === 'storage') renderSavedVault();
     });
+  });
+
+  // Hot / Triples Checkboxes
+  document.getElementById('chk-prefer-hot')?.addEventListener('change', () => {
+    hideResultsArea();
+  });
+  document.getElementById('chk-avoid-triples')?.addEventListener('change', () => {
+    hideResultsArea();
   });
 
   // Sound Toggle Button
@@ -1463,6 +1476,8 @@ function initApp() {
       subContents.forEach(sc => (sc.style.display = 'none'));
       const activeSub = document.getElementById(`sub-mode-${mode}`);
       if (activeSub) activeSub.style.display = 'block';
+
+      hideResultsArea();
     });
   });
 
@@ -1474,6 +1489,7 @@ function initApp() {
       ratioBtns.forEach(b => b.classList.remove('btn-action-primary'));
       btn.classList.add('btn-action-primary');
       state.oddRatio = btn.dataset.ratio;
+      hideResultsArea();
     });
   });
 
@@ -1485,6 +1501,7 @@ function initApp() {
 
   btnWhiteTarget?.addEventListener('click', () => {
     sound.playClick();
+    hideResultsArea();
     state.customTarget = 'white';
     btnWhiteTarget.classList.add('btn-action-primary');
     btnPBTarget?.classList.remove('btn-action-primary');
@@ -1494,6 +1511,7 @@ function initApp() {
 
   btnPBTarget?.addEventListener('click', () => {
     sound.playClick();
+    hideResultsArea();
     state.customTarget = 'pb';
     btnPBTarget.classList.add('btn-action-primary');
     btnWhiteTarget?.classList.remove('btn-action-primary');
@@ -1507,6 +1525,7 @@ function initApp() {
 
   btnModeFixed?.addEventListener('click', () => {
     sound.playClick();
+    hideResultsArea();
     state.customPickMode = 'fixed';
     btnModeFixed.classList.add('btn-action-primary');
     btnModeExcluded?.classList.remove('btn-action-primary');
@@ -1514,6 +1533,7 @@ function initApp() {
 
   btnModeExcluded?.addEventListener('click', () => {
     sound.playClick();
+    hideResultsArea();
     state.customPickMode = 'excluded';
     btnModeExcluded.classList.add('btn-action-primary');
     btnModeFixed?.classList.remove('btn-action-primary');
@@ -1522,6 +1542,7 @@ function initApp() {
   // Reset Filters Button
   document.getElementById('btn-reset-filters')?.addEventListener('click', () => {
     sound.playClick();
+    hideResultsArea();
     state.fixedWhite = [];
     state.fixedPB = null;
     state.excludedWhite = [];
@@ -1537,10 +1558,12 @@ function initApp() {
 
   dreamSearchBtn?.addEventListener('click', () => {
     sound.playClick();
+    hideResultsArea();
     renderDreamItems(dreamInput?.value || '');
   });
 
   dreamInput?.addEventListener('input', e => {
+    hideResultsArea();
     renderDreamItems(e.target.value);
   });
 
@@ -1548,6 +1571,13 @@ function initApp() {
   const selectMonth = document.getElementById('select-birth-month');
   const selectDay = document.getElementById('select-birth-day');
   const btnFindCons = document.getElementById('btn-find-constellation');
+
+  selectMonth?.addEventListener('change', () => {
+    hideResultsArea();
+  });
+  selectDay?.addEventListener('change', () => {
+    hideResultsArea();
+  });
 
   if (selectMonth && selectDay) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1568,6 +1598,7 @@ function initApp() {
 
   btnFindCons?.addEventListener('click', () => {
     sound.playClick();
+    hideResultsArea();
     const m = Number(selectMonth.value);
     const d = Number(selectDay.value);
 
